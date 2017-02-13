@@ -22,6 +22,15 @@ var onHeaders = require('on-headers')
 
 module.exports = timeout
 
+function onTimeout(delay, cb) {
+  return function () {
+    cb(createError(503, 'Response timeout', {
+      code: 'ETIMEDOUT',
+      timeout: delay
+    }))
+  }
+}
+
 /**
  * Timeout:
  *
@@ -41,6 +50,7 @@ function timeout (time, options) {
     : Number(time || 5000)
 
   var respond = opts.respond === undefined || opts.respond === true
+  var onTimeout = opts.onTimeout || onTimeout;
 
   return function (req, res, next) {
     var id = setTimeout(function () {
@@ -67,14 +77,5 @@ function timeout (time, options) {
     })
 
     next()
-  }
-}
-
-function onTimeout (delay, cb) {
-  return function () {
-    cb(createError(503, 'Response timeout', {
-      code: 'ETIMEDOUT',
-      timeout: delay
-    }))
   }
 }
